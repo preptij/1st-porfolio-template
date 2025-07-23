@@ -1,14 +1,35 @@
 "use client";
 import { useEffect, useRef, useState, useCallback } from "react";
-import { Color, Scene, Fog, PerspectiveCamera, Vector3 } from "three";
+import * as THREE from 'three';
+import { Color, Fog, PerspectiveCamera, Scene, Vector3 } from 'three';
 import ThreeGlobe from "three-globe";
 import { useThree, Object3DNode, Canvas, extend } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import countries from "@/data/globe.json";
 import { ErrorBoundary } from './ErrorBoundary';
+const { gl } = useThree();
+
+interface GlobeMesh {
+  material?: THREE.Material | THREE.Material[];
+  geometry?: THREE.BufferGeometry;
+}
+
+interface ExtendedThreeGlobe extends ThreeGlobe {
+  updateGlobe(): unknown;
+  globeMesh?: GlobeMesh;
+}
+
 declare module "@react-three/fiber" {
   interface ThreeElements {
-    threeGlobe: Object3DNode<ThreeGlobe, typeof ThreeGlobe>;
+    threeGlobe: Object3DNode<ExtendedThreeGlobe, typeof ThreeGlobe>;
+  }
+}
+
+declare global {
+  namespace JSX {
+    interface IntrinsicElements {
+      threeGlobe: Object3DNode<ExtendedThreeGlobe, typeof ThreeGlobe>;
+    }
   }
 }
 
@@ -73,12 +94,25 @@ export function Globe({ globeConfig, data }: WorldProps) {
     | null
   >(null);
 
-  const globeRef = useRef<ThreeGlobe | null>(null);
+  const globeRef = useRef<ExtendedThreeGlobe | null>(null);
 
   useEffect(() => {
     return () => {
       if (globeRef.current) {
-        globeRef.current.dispose();
+        // Remove globe from scene
+        globeRef.current.parent?.remove(globeRef.current);
+        // Dispose materials and geometry
+        const globeMesh = globeRef.current.globeMesh;
+        if (globeMesh && globeMesh.material) {
+          if (Array.isArray(globeMesh.material)) {
+            globeMesh.material.forEach(mat => mat.dispose());
+          } else {
+            globeMesh.material.dispose();
+          }
+        }
+        if (globeMesh && globeMesh.geometry) {
+          globeMesh.geometry.dispose();
+        }
       }
     };
   }, [globeRef]);

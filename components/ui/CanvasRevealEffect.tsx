@@ -31,7 +31,11 @@ export const CanvasRevealEffect = ({
     return () => {
       if (ref.current) {
         if (ref.current.material) {
-          ref.current.material.dispose();
+          if (Array.isArray(ref.current.material)) {
+            ref.current.material.forEach(material => material.dispose());
+          } else {
+            ref.current.material.dispose();
+          }
         }
         if (ref.current.geometry) {
           ref.current.geometry.dispose();
@@ -253,10 +257,10 @@ const ShaderMaterial = ({
       }
     }
 
-    preparedUniforms["u_time"] = { value: 0, type: "1f" };
+    preparedUniforms["u_time"] = { value: 0, type: "f" };
     preparedUniforms["u_resolution"] = {
       value: new THREE.Vector2(size.width * 2, size.height * 2),
-    }; // Initialize u_resolution
+    };
     return preparedUniforms;
   }, []);
 
@@ -287,7 +291,8 @@ const ShaderMaterial = ({
 
     const material: any = ref.current.material;
     const timeLocation = material.uniforms.u_time;
-    timeLocation.value = timestamp;
+    // Ensure we're passing a single number
+    timeLocation.value = parseFloat(timestamp.toFixed(2));
   }, [maxFps]);
 
   // Shader material
