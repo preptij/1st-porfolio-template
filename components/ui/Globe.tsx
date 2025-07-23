@@ -5,6 +5,7 @@ import ThreeGlobe from "three-globe";
 import { useThree, Object3DNode, Canvas, extend } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import countries from "@/data/globe.json";
+import { ErrorBoundary } from './ErrorBoundary';
 declare module "@react-three/fiber" {
   interface ThreeElements {
     threeGlobe: Object3DNode<ThreeGlobe, typeof ThreeGlobe>;
@@ -73,6 +74,14 @@ export function Globe({ globeConfig, data }: WorldProps) {
   >(null);
 
   const globeRef = useRef<ThreeGlobe | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (globeRef.current) {
+        globeRef.current.dispose();
+      }
+    };
+  }, [globeRef]);
 
   const defaultProps = {
     pointSize: 1,
@@ -266,9 +275,11 @@ export function Globe({ globeConfig, data }: WorldProps) {
   }, [globeRef, gl]);
 
   return (
-    <>
-      <threeGlobe ref={globeRef} />
-    </>
+    <ErrorBoundary>
+      <>
+        <threeGlobe ref={globeRef} />
+      </>
+    </ErrorBoundary>
   );
 }
 
