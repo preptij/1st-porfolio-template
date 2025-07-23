@@ -1,7 +1,5 @@
 // next.config.mjs
-import { type NextConfig } from 'next'
-
-const nextConfig: NextConfig = {
+const nextConfig = {
   reactStrictMode: true,
   images: {
     domains: ['localhost'],
@@ -11,4 +9,4 @@ const nextConfig: NextConfig = {
   },
 }
 
-export default nextConfig
+module.exports = nextConfig
