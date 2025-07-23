@@ -162,7 +162,7 @@ export function Globe({ globeConfig, data }: WorldProps) {
         });
       startAnimation();
     }
-  }, [globeData]);
+  }, [globeData, defaultProps.showAtmosphere, defaultProps.atmosphereColor, defaultProps.atmosphereAltitude, defaultProps.polygonColor, startAnimation]);
 
   const startAnimation = () => {
     if (!globeRef.current || !globeData) return;
@@ -218,10 +218,52 @@ export function Globe({ globeConfig, data }: WorldProps) {
       );
     }, 2000);
 
-    return () => {
-      clearInterval(interval);
+    return () => clearInterval(interval);
+  }, [globeRef, globeData, data.length, numbersOfRings]);
+
+  useEffect(() => {
+    if (!globeRef.current) return;
+
+    const updateGlobe = () => {
+      if (!globeRef.current) return;
+      globeRef.current.updateGlobe();
     };
-  }, [globeRef.current, globeData]);
+
+    updateGlobe();
+    return () => {
+      // Cleanup
+    };
+  }, [globeRef, defaultProps.atmosphereAltitude, defaultProps.atmosphereColor, defaultProps.polygonColor, defaultProps.showAtmosphere, startAnimation]);
+
+  useEffect(() => {
+    if (!globeRef.current || !globeData) return;
+
+    const interval = setInterval(() => {
+      if (!globeRef.current || !globeData) return;
+      numbersOfRings = genRandomNumbers(0, data.length, Math.floor((data.length * 4) / 5));
+
+      globeRef.current.ringsData(
+        globeData.filter((d, i) => numbersOfRings.includes(i))
+      );
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, [globeRef, globeData, data.length, numbersOfRings]);
+
+  useEffect(() => {
+    if (!globeRef.current) return;
+
+    const updateSize = () => {
+      if (!globeRef.current) return;
+      const { width, height } = gl.domElement.getBoundingClientRect();
+      // Update size logic here
+    };
+
+    updateSize();
+    return () => {
+      // Cleanup
+    };
+  }, [globeRef, gl, size.width, size.height]);
 
   return (
     <>
@@ -237,7 +279,7 @@ export function WebGLRendererConfig() {
     gl.setPixelRatio(window.devicePixelRatio);
     gl.setSize(size.width, size.height);
     gl.setClearColor(0xffaaff, 0);
-  }, []);
+  }, [gl, size.width, size.height]);
 
   return null;
 }
