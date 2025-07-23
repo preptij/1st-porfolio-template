@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { Color, Scene, Fog, PerspectiveCamera, Vector3 } from "three";
 import ThreeGlobe from "three-globe";
 import { useThree, Object3DNode, Canvas, extend } from "@react-three/fiber";
@@ -162,9 +162,9 @@ export function Globe({ globeConfig, data }: WorldProps) {
         });
       startAnimation();
     }
-  }, [globeData, defaultProps.showAtmosphere, defaultProps.atmosphereColor, defaultProps.atmosphereAltitude, defaultProps.polygonColor, startAnimation]);
+  }, [globeData, defaultProps.showAtmosphere, defaultProps.atmosphereColor, defaultProps.atmosphereAltitude, defaultProps.polygonColor]);
 
-  const startAnimation = () => {
+  const startAnimation = useCallback(() => {
     if (!globeRef.current || !globeData) return;
 
     globeRef.current
@@ -200,7 +200,7 @@ export function Globe({ globeConfig, data }: WorldProps) {
       .ringRepeatPeriod(
         (defaultProps.arcTime * defaultProps.arcLength) / defaultProps.rings
       );
-  };
+  }, [globeRef, globeData]);
 
   useEffect(() => {
     if (!globeRef.current || !globeData) return;
@@ -219,21 +219,21 @@ export function Globe({ globeConfig, data }: WorldProps) {
     }, 2000);
 
     return () => clearInterval(interval);
-  }, [globeRef, globeData, data.length, numbersOfRings]);
+  }, [globeRef, globeData, data.length]);
 
   useEffect(() => {
     if (!globeRef.current) return;
 
-    const updateGlobe = () => {
+    const updateGlobe = useCallback(() => {
       if (!globeRef.current) return;
       globeRef.current.updateGlobe();
-    };
+    }, [globeRef]);
 
     updateGlobe();
     return () => {
       // Cleanup
     };
-  }, [globeRef, defaultProps.atmosphereAltitude, defaultProps.atmosphereColor, defaultProps.polygonColor, defaultProps.showAtmosphere, startAnimation]);
+  }, [globeRef]);
 
   useEffect(() => {
     if (!globeRef.current || !globeData) return;
@@ -248,22 +248,22 @@ export function Globe({ globeConfig, data }: WorldProps) {
     }, 2000);
 
     return () => clearInterval(interval);
-  }, [globeRef, globeData, data.length, numbersOfRings]);
+  }, [globeRef, globeData, data.length]);
 
   useEffect(() => {
     if (!globeRef.current) return;
 
-    const updateSize = () => {
+    const updateSize = useCallback(() => {
       if (!globeRef.current) return;
       const { width, height } = gl.domElement.getBoundingClientRect();
       // Update size logic here
-    };
+    }, [globeRef, gl]);
 
     updateSize();
     return () => {
       // Cleanup
     };
-  }, [globeRef, gl, size.width, size.height]);
+  }, [globeRef, gl]);
 
   return (
     <>
